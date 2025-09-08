@@ -13,13 +13,13 @@ Smart Traffic Orchestration Platform that combines:
 ## 👥 Team Members
 | Name | Role | GitHub | Responsibility |
 |------|------|--------|----------------|
-| [Leader Name] | Project Manager | [@username] | Integration & Coordination |
-| [Member 1] | Computer Vision Engineer | [@username] | Vehicle Detection |
-| [Member 2] | AI/ML Engineer | [@username] | Signal Optimization |
-| [Member 3] | Backend Developer | [@username] | APIs & Data Pipeline |
-| [Member 4] | Frontend Developer | [@username] | Dashboard & UI |
-| [Member 5] | SUMO Specialist | [@username] | Traffic Simulation |
-| [Member 6] | DevOps Engineer | [@username] | Deployment & Testing |
+| [Leader Name] | Team Leader | vijay | Integration & Coordination |
+| [Member 1] | Computer Vision Engineer | siva ganesh | Vehicle Detection |
+| [Member 2] | AI/ML Engineer | vijay | Signal Optimization |
+| [Member 3] | Backend Developer | vijayalakshmi | APIs & Data Pipeline |
+| [Member 4] | Frontend Developer | zebnoor | Dashboard & UI |
+| [Member 5] | SUMO Specialist | vamsi | Traffic Simulation |
+| [Member 6] | DevOps Engineer | voshan | Deployment & Testing |
 
 ## 🛠️ Technology Stack
 - **Backend:** Python, FastAPI, Redis
