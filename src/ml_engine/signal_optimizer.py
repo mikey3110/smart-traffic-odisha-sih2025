@@ -1,41 +1,114 @@
-# signal_optimizer.py
+import requests
+import json
+import time
+from datetime import datetime
 
-class RuleBasedSignalOptimizer:
-    def __init__(self, green_time=30):
-        """
-        Initialize the optimizer
-        :param green_time: default green signal time (seconds)
-        """
-        self.green_time = green_time
-
-    def optimize(self, queue_length):
+class SimpleSignalOptimizer:
+    def __init__(self, base_green_time=30):
+        self.base_green_time = base_green_time
+        self.api_url = "http://localhost:8000"
+    
+    def get_traffic_data(self, intersection_id):
+        """Get current traffic data from backend"""
+        try:
+            response = requests.get(f"{self.api_url}/traffic/status/{intersection_id}")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"No traffic data available: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"Error getting traffic data: {e}")
+            return None
+    
+    def optimize_signal_timing(self, lane_counts):
         """
         Simple optimization rule:
-        - If queue length > 10, extend green by 10 seconds
-        - Else reduce green by 5 seconds (minimum 10 seconds)
-        
-        :param queue_length: number of vehicles waiting at the signal
-        :return: optimized green light duration in seconds
+        - If lane has >10 vehicles: extend green by 15 seconds
+        - If lane has 5-10 vehicles: extend green by 5 seconds  
+        - If lane has <5 vehicles: reduce green by 5 seconds (min 15)
         """
-        if queue_length > 10:
-            new_time = self.green_time + 10
-            print(f"Queue length {queue_length} > 10. Extending green time to {new_time} seconds.")
-        else:
-            new_time = max(10, self.green_time - 5)
-            print(f"Queue length {queue_length} <= 10. Reducing green time to {new_time} seconds.")
-        return new_time
-
+        optimized_timings = {}
+        
+        for lane, count in lane_counts.items():
+            if count > 10:
+                timing = self.base_green_time + 15
+                action = f"HIGH TRAFFIC: Extended to {timing}s"
+            elif count >= 5:
+                timing = self.base_green_time + 5
+                action = f"MEDIUM TRAFFIC: Extended to {timing}s"
+            else:
+                timing = max(15, self.base_green_time - 5)
+                action = f"LOW TRAFFIC: Reduced to {timing}s"
+            
+            optimized_timings[lane] = timing
+            print(f"{lane}: {count} vehicles -> {action}")
+        
+        return optimized_timings
+    
+    def send_optimization(self, intersection_id, optimized_timings):
+        """Send optimization back to backend"""
+        try:
+            data = {
+                "intersection_id": intersection_id,
+                "optimized_timings": optimized_timings
+            }
+            
+            response = requests.put(f"{self.api_url}/signal/optimize/{intersection_id}", json=data)
+            if response.status_code == 200:
+                print(f"✅ Sent optimization for {intersection_id}")
+                return True
+            else:
+                print(f"❌ Failed to send optimization: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ Error sending optimization: {e}")
+            return False
+    
+    def run_optimization_cycle(self, intersection_id):
+        """Run one optimization cycle"""
+        print(f"\n🔄 Optimizing signals for {intersection_id}...")
+        
+        # Get traffic data
+        traffic_data = self.get_traffic_data(intersection_id)
+        if not traffic_data:
+            print("❌ No traffic data available")
+            return
+        
+        lane_counts = traffic_data.get('lane_counts', {})
+        print(f"📊 Current traffic: {lane_counts}")
+        
+        # Optimize
+        optimized_timings = self.optimize_signal_timing(lane_counts)
+        print(f"🚦 Optimized timings: {optimized_timings}")
+        
+        # Send back to backend
+        self.send_optimization(intersection_id, optimized_timings)
+        
+        return optimized_timings
 
 def main():
-    optimizer = RuleBasedSignalOptimizer()
-
-    # Test different queue lengths
-    test_queues = [5, 8, 12, 15, 7]
-
-    for q_len in test_queues:
-        optimized_time = optimizer.optimize(q_len)
-        print(f"Optimized green light time: {optimized_time} seconds\n")
-
+    optimizer = SimpleSignalOptimizer()
+    
+    # Test with mock data first
+    mock_lane_counts = {
+        'north_lane': 12,
+        'south_lane': 4,
+        'east_lane': 8,
+        'west_lane': 15
+    }
+    
+    print("🧪 Testing with mock data:")
+    optimized = optimizer.optimize_signal_timing(mock_lane_counts)
+    print(f"Mock optimization result: {optimized}")
+    
+    # Try real API integration
+    print("\n🔗 Testing API integration:")
+    try:
+        optimizer.run_optimization_cycle("junction-1")
+    except Exception as e:
+        print(f"API integration test failed: {e}")
+        print("Will work once backend is running!")
 
 if __name__ == "__main__":
     main()
