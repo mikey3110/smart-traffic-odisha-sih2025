@@ -33,4 +33,4 @@ Build APIs that connect all components together
 - **Redis:** Fast database
 - **Python:** Programming
 
-## 🚀 Quick Start
+## 🚀 Quick Start.

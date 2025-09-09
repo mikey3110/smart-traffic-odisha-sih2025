@@ -27,6 +27,7 @@ Smart Traffic Orchestration Platform that combines:
 - **AI/ML:** Reinforcement Learning (Stable-Baselines3)
 - **Frontend:** React, Chart.js
 - **Simulation:** SUMO Traffic Simulator
+## Done
 
 ## 🚀 Quick Start
 
